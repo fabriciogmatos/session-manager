@@ -1,7 +1,8 @@
 {
 	"manifest_version": 2,
-	"name": "Session Manager",
-	"version": "3.5.0",
+	"name": "Session Manager 2",
+	"version": "1.0.0",
+	// "version": "3.5.1",
 	"description": "Simple yet powerful tab set management. Quickly and easily save, update, remove, and restore sets of tabs!",
 	"icons": {
 		"16": "img/16.png",
@@ -12,7 +13,7 @@
 			"19": "img/19-1x.png",
 			"38": "img/19-2x.png"
 		},
-		"default_title": "Session Manager",
+		"default_title": "Session Manager 2",
 		"default_popup": "popup.html"
 	},
 	"background": {

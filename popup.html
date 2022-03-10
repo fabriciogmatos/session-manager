@@ -2,17 +2,25 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Session Manager</title>
+		<title>Session Manager 2</title>
 		<link rel="stylesheet" href="css/reset.css">
 		<link rel="stylesheet" href="css/popup.css">
 	</head>
 	<body>
 		<div id="main">
+			<fieldset id="main-search"><legend>Search</legend>
+				<div class="box">
+					<input type="text" id="main-search-name" class="flex" placeholder="Session name search" data-action="search">
+					<button data-action="search">search</button>
+				</div>
+			</fieldset>
+
 			<fieldset id="main-saved"><legend>Saved sessions (<a href="popup.html?import" target="_blank">Import</a> - <a data-view="export" data-action="export">Export</a>)</legend>
 				<div id="main-saved-temp"></div>
 				<div id="main-saved-list"></div>
 			</fieldset>
 			
+			<!--<fieldset id="main-save"><legend>Save this window's tabs (<a data-action="savetemp">as temp session</a> - <a data-action="saveall">save all windows and tabs</a>)</legend>-->
 			<fieldset id="main-save"><legend>Save this window's tabs (<a data-action="savetemp">as temp session</a>)</legend>
 				<div class="box">
 					<input type="text" id="main-save-name" class="flex" placeholder="Session name" data-action="save">
@@ -21,7 +29,7 @@
 			</fieldset>
 			
 			<!-- <fieldset id="main-changelog">
-				<p>Session Manager has been updated!</p>
+				<p>Session Manager 2 has been updated!</p>
 				
 				<ul></ul>
 			</fieldset> -->

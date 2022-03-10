@@ -24,4 +24,4 @@ $("#pinned-noreplace").change(function () {
 	}
 }).prop("checked", localStorage.noreplacingpinned === "true");
 
-chrome.extension.getBackgroundPage().ga("send", "pageview", "/options");
+//chrome.extension.getBackgroundPage().ga("send", "pageview", "/options");

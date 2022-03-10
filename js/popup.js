@@ -12,9 +12,30 @@ var utils = {
 		yes.focus();
 	},
 	action: function(name, index){
-		state.action = name || state.action;
-		actions[state.action][index || 0](state.name);
-		sessions.load();
+        var $seaa = $("#main-search-name").val().trim();
+        //alert(name, index);
+        if (name == "search") {
+            console.log("ação: search");
+            var $txt = $("#main-search-name").val().trim();
+            console.log("Variável de pesquisa: "+ $txt);
+            if ($txt !="") {
+                console.log("Entrou");
+                //alert($("#main-search-name").val().trim());
+                let alvo = document.getElementById("main-saved-list");
+                alvo.innerText = "";
+                console.log("Limpou as divs");
+                sessions.sc();
+                console.log("sessions.sc();");
+            } else {
+                state.action = name || state.action;
+                actions[state.action][index || 0](state.name);
+                sessions.load();
+            }
+        } else {
+            state.action = name || state.action;
+            actions[state.action][index || 0](state.name);
+            sessions.load();
+        }
 	},
 	escape: function(text){
 		return $("<div/>").text(text).html();
@@ -58,12 +79,37 @@ var sessions = {
 		
 		localStorage.sessions = JSON.stringify(sessions.list);
 		$.each(sessions.list, function(name){
-			$("<div/>").html("<big>" + utils.escape(name) + "</big><a>&times;</a><br>" +
+			$("<div/>").html("<big>" + utils.escape(name) +' ' + "</big><a>&times;</a><br>" +
 				sessions.display(name, true) +
 				"<span><a>Open</a> - <a>Add</a> (<a>tab</a>) - <a>Replace</a></span>" +
 			"<br><hr>").attr("data-name", name).appendTo($list);
 		});
 		
+		$("hr", "#main-saved").last().remove();
+		
+		$list.children().css("margin-right", Object.keys(sessions.list).length > 10 ? 5 : 0);
+	},
+    sc: function(name){
+		
+        var $list = $("#main-saved-list");
+		
+		localStorage.sessions = JSON.stringify(sessions.list);
+		
+        $.each(sessions.list, function(name){
+            var $str = utils.escape(name);
+            var $txt = $("#main-search-name").val().trim();
+            var $str = $str.toUpperCase();
+        
+            console.log($str, name, $txt);
+            
+            if ($str.includes($txt.toUpperCase()) ) {
+                $("<div/>").html("<big>" + utils.escape(name) + "</big><a>&times;</a><br>" +
+                    sessions.display(name, true) +
+                    "<span><a>Open</a> - <a>Add</a> (<a>tab</a>) - <a>Replace</a></span>" +
+                "<br><hr>").attr("data-name", name).appendTo($list);
+            }
+		});
+		$("#main-search-name").val("");
 		$("hr", "#main-saved").last().remove();
 		
 		$list.children().css("margin-right", Object.keys(sessions.list).length > 10 ? 5 : 0);
@@ -111,7 +157,7 @@ var actions = {
 			next();
 		});
 		
-		background.ga("send", "event", "Action", "Import", state.entered);
+		// background.ga("send", "event", "Action", "Import", state.entered);
 	}],
 	
 	export: [function(){
@@ -121,7 +167,7 @@ var actions = {
 	}, function(){
 		$("#export-check").fadeIn().delay(2000).fadeOut();
 		
-		background.ga("send", "event", "Action", "Export");
+		// background.ga("send", "event", "Action", "Export");
 	}],
 	
 	rename: [function(name){
@@ -146,7 +192,7 @@ var actions = {
 			delete sessions.list[oname];
 		}
 		
-		background.ga("send", "event", "Session", "Rename");
+		// background.ga("send", "event", "Session", "Rename");
 	}],
 	
 	add: [function(name){
@@ -156,7 +202,7 @@ var actions = {
 			Array.prototype.push.apply(name === null ? sessions.temp : sessions.list[name], tabs);
 		});
 		
-		background.ga("send", "event", name === null ? "Temp": "Session", "AddWin");
+		// background.ga("send", "event", name === null ? "Temp": "Session", "AddWin");
 	}],
 	
 	tab: [function(name){
@@ -167,13 +213,13 @@ var actions = {
 			sessions.load();
 		});
 		
-		background.ga("send", "event", name === null ? "Temp": "Session", "AddTab");
+		// background.ga("send", "event", name === null ? "Temp": "Session", "AddTab");
 	}],
 	
 	replace: [function(name){
 		utils.confirm("Are you sure you want to replace " + sessions.display(name) + " with the current window's tabs?");
 	}, function(name){
-		background.ga("send", "event", "Session", sessions.list[name] ? "Replace" : "Save");
+		// background.ga("send", "event", "Session", sessions.list[name] ? "Replace" : "Save");
 		
 		utils.tabs(function(tabs){
 			sessions.list[name] = tabs;
@@ -191,7 +237,7 @@ var actions = {
 			delete sessions.list[name];
 		}
 		
-		background.ga("send", "event", name === null ? "Temp" : "Session", "Remove");
+		// background.ga("send", "event", name === null ? "Temp" : "Session", "Remove");
 	}],
 	
 	savetemp: [function(){
@@ -199,9 +245,79 @@ var actions = {
 			sessions.temp = tabs;
 		});
 		
-		background.ga("send", "event", "Temp", "Save");
+		// background.ga("send", "event", "Temp", "Save");
+	}],
+ 
+//     // save all windows and tabs
+//     saveall: [function(){
+// // 		utils.tabs(function(tabs){
+// // 			sessions.temp = tabs;
+// // 		});
+//         chrome.windows.getAll(true);
+// 	}],
+  
+    search: [function(){
+        var $name = $("#main-search-name"), name = state.name = $name.val().trim();
+        
+        if (name==" ") {
+            exit;
+        } else {
+            var $clear = $("#main-saved-list");
+            var $list = $("#main-saved-list"), name = state.name = $name.val().trim();
+            let alvo = document.getElementById("main-saved-list");
+            alvo.innerText = "";
+            
+            const div = document.getElementById("main-saved-list");
+        
+            for (child of div.children){
+                child.remove();
+            }
+        }
+        //document.write("popup.html");
+      
+        /*$.each(sessions.list, function(name){
+			$("<div/>").html("<big>" + utils.escape(name) +' ' + "</big><a>&times;</a><br>" +
+				sessions.display(name, true) +
+				"<span><a>Open</a> - <a>Add</a> (<a>tab</a>) - <a>Replace</a></span>" +
+			"<br><hr>").attr("data-name", name).appendTo($list);
+		*/
+        
+        //});
+        //alert(name);
+        //utils.view("main");
+        //utils.view("main");
+        //document.write(list);
+        //sessions.sc(name);
+        //sessions.load();
+        
+        //sessions.display(name);
+        //sessions.load;
+        //document.write("");
+    return name;
 	}],
 	
+    
+//     search: [function(){
+// 		utils.tabs(function(tabs){
+// 			sessions.temp = tabs;
+// 		});
+//         utils.tabs(function(tabs){
+//                         sessions.list[name] = tabs;
+//                     });
+// :
+// 		
+// 		// background.ga("send", "event", "Temp", "Save");
+// 	}],
+    all: [function(){
+		var $name = $("#main-save-name"), name = state.name = $name.val().trim();
+		
+		if (name) {
+			$name.val("");
+			
+			utils.action("replace", sessions.list[name] ? 2 : 1);
+		}
+	}],
+// 	
 	save: [function(){
 		var $name = $("#main-save-name"), name = state.name = $name.val().trim();
 		
@@ -227,6 +343,27 @@ $("body").on("focus", "*", function(){
 	"view" in this.dataset && utils.view(this.dataset.view);
 	"action" in this.dataset && utils.action(this.dataset.action, this.dataset.actionindex);
 });
+
+
+//---------------------
+$("#main-search-list").on("click", "big, div > a:not([title])", function(){
+	state.name = this.parentNode.dataset.name;
+	
+	utils.action(this.tagName === "BIG" ? "rename" : "remove");
+}).on("click", "span > a", function(e){
+	var action = this.textContent.toLowerCase(),
+		name = state.name = this.parentNode.parentNode.dataset.name;
+	
+	if (action === "open") {
+		chrome.windows.getCurrent(function(win){
+			background.openSession(win.id, sessions.list[name], e, false) !== false && window.close();
+		});
+	} else {
+		utils.action(action);
+	}
+});
+
+//_------------------------------
 
 $("#main-saved-list").on("click", "big, div > a:not([title])", function(){
 	state.name = this.parentNode.dataset.name;
@@ -283,9 +420,11 @@ if (location.search) {
 	
 	utils.view("import");
 	
-	background.ga("send", "pageview", "/import");
+	// background.ga("send", "pageview", "/import");
 } else {
-	background.ga("send", "pageview", "/popup");
+	// background.ga("send", "pageview", "/popup");
 }
 
 })();
+document.getElementById("main-search-name").focus();
+$("#main-search-name").focus();

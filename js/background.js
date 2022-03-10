@@ -1,18 +1,19 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Analytics
 ////////////////////////////////////////////////////////////////////////////////
-(function(i,s,o,g,r,a,m){i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,"script","https://www.google-analytics.com/analytics.js","ga");
+
+// (function(i,s,o,g,r,a,m){i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){
+// (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+// m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+// })(window,document,"script","https://www.google-analytics.com/analytics.js","ga");
 
 var version = chrome.runtime.getManifest().version;
 
-ga("create", "##GAID##", "auto");
-ga("set", "checkProtocolTask", null);
-ga("set", "transport", "beacon");
-ga("set", "dimension1", version);
-ga("send", "pageview", "/");
+// ga("create", "##GAID##", "auto");
+// ga("set", "checkProtocolTask", null);
+// ga("set", "transport", "beacon");
+// ga("set", "dimension1", version);
+// ga("send", "pageview", "/");
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +36,7 @@ if (localStorage.version === version) {
 		
 		delete localStorage.temp;
 		
-		ga("send", "event", "Temp", "Restore");
+		// ga("send", "event", "Temp", "Restore");
 	}
 } else {
 	localStorage.readchanges = false;
@@ -91,7 +92,7 @@ chrome.omnibox.onInputEntered.addListener(function (name) {
 	if (sessions[name]) {
 		openSession(undefined, sessions[name]);
 		
-		ga("send", "event", "Session", "Omnibox");
+		// ga("send", "event", "Session", "Omnibox");
 	}
 });
 
@@ -136,5 +137,5 @@ window.openSession = function (cwinId, urls, e, isTemp) {
 		return false;
 	}
 	
-	e && ga("send", "event", isTemp ? "Temp" : "Session", "Open", action);
+	// e && ga("send", "event", isTemp ? "Temp" : "Session", "Open", action);
 };
