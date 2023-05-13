@@ -40,16 +40,15 @@ var utils = {
 	escape: function(text){
 		return $("<div/>").text(text).html();
 	},
-	tabs: function(cb){
-		chrome.tabs.getAllInWindow(null, function(tabs){
-			if (localStorage.pinned === "skip") {
-				tabs = tabs.filter(function(t){ return !t.pinned; });
-			}
-			
-			cb(tabs.map(function(t){ return t.url; }));
-			sessions.load();
+	tabs: function(cb) {
+		chrome.tabs.query({ windowId: chrome.windows.WINDOW_ID_CURRENT }, function(tabs) {
+		  if (localStorage.pinned === "skip") {
+			tabs = tabs.filter(function(t){ return !t.pinned; });
+		  }
+		  cb(tabs.map(function(t){ return t.url; }));
+		  sessions.load();
 		});
-	}
+	  }
 };
 
 
@@ -65,18 +64,18 @@ var state = {
 var sessions = {
 	list: JSON.parse(localStorage.sessions),
 	temp: localStorage.temp ? JSON.parse(localStorage.temp) : undefined,
-	
+
 	load: function(){
 		var $temp = $("#main-saved-temp"), $list = $("#main-saved-list");
 		$temp.add($list).empty();
-		
+
 		if (sessions.temp) {
 			localStorage.temp = JSON.stringify(sessions.temp);
 			$temp.html("<a>&times;</a> Temp session: " + sessions.display(null, true) + " - <a>Open</a> - <a>Add</a> (<a>tab</a>)<hr>");
 		} else {
 			delete localStorage.temp;
 		}
-		
+
 		localStorage.sessions = JSON.stringify(sessions.list);
 		$.each(sessions.list, function(name){
 			$("<div/>").html("<big>" + utils.escape(name) +' ' + "</big><a>&times;</a><br>" +
@@ -84,24 +83,24 @@ var sessions = {
 				"<span><a>Open</a> - <a>Add</a> (<a>tab</a>) - <a>Replace</a></span>" +
 			"<br><hr>").attr("data-name", name).appendTo($list);
 		});
-		
+
 		$("hr", "#main-saved").last().remove();
-		
+
 		$list.children().css("margin-right", Object.keys(sessions.list).length > 10 ? 5 : 0);
 	},
     sc: function(name){
-		
+
         var $list = $("#main-saved-list");
-		
+
 		localStorage.sessions = JSON.stringify(sessions.list);
-		
+
         $.each(sessions.list, function(name){
             var $str = utils.escape(name);
             var $txt = $("#main-search-name").val().trim();
             var $str = $str.toUpperCase();
-        
+
             console.log($str, name, $txt);
-            
+
             if ($str.includes($txt.toUpperCase()) ) {
                 $("<div/>").html("<big>" + utils.escape(name) + "</big><a>&times;</a><br>" +
                     sessions.display(name, true) +
@@ -111,7 +110,7 @@ var sessions = {
 		});
 		$("#main-search-name").val("");
 		$("hr", "#main-saved").last().remove();
-		
+
 		$list.children().css("margin-right", Object.keys(sessions.list).length > 10 ? 5 : 0);
 	},
 	display: function(name, count){
@@ -125,58 +124,58 @@ var sessions = {
 var actions = {
 	import: [function(){
 		var reader = new FileReader();
-		
+
 		reader.onload = function(e){
 			try {
 				$.each(JSON.parse(e.target.result), function(name, urls){
 					sessions.list[name] = urls;
 				});
-				
+
 				state.entered = "Success";
 			} catch (e) {
 				state.entered = "ParseError";
 			}
-			
+
 			utils.action("import", 1);
 		};
-		
+
 		reader.onerror = function(){
 			state.entered = "FileError";
 			utils.action("import", 1);
 		};
-		
+
 		reader.readAsText($("#import-file")[0].files[0]);
 	}, function(){
 		var status = state.entered,
 			success = status === "Success",
 			message = $("#import-message").text(success ? "Success!" : "Import failed!").delay(500).slideDown();
-		
+
 		success && message.delay(1500).queue(function(next){
 			location.search ? window.close() : utils.view("main");
 			message.hide();
 			next();
 		});
-		
+
 		// background.ga("send", "event", "Action", "Import", state.entered);
 	}],
-	
+
 	export: [function(){
 		var data = new Blob([localStorage.sessions]);
-		
+
 		$("#export-link").prop("href", (window.URL || window.webkitURL).createObjectURL(data));
 	}, function(){
 		$("#export-check").fadeIn().delay(2000).fadeOut();
-		
+
 		// background.ga("send", "event", "Action", "Export");
 	}],
-	
+
 	rename: [function(name){
 		$("#rename-legend").html("Rename " + sessions.display(name));
 		utils.view("rename");
 		$("#rename-text").val("").focus();
 	}, function(oname){
 		var nname = state.entered = $("#rename-text").val().trim();
-		
+
 		if (nname) {
 			if (sessions.list[nname]) {
 				utils.confirm("Are you sure you want to replace " + sessions.display(nname) + " by renaming " + sessions.display(oname) + "?", 2);
@@ -187,47 +186,48 @@ var actions = {
 		}
 	}, function(oname){
 		sessions.list[state.entered] = sessions.list[oname];
-		
+
 		if (state.entered !== oname) {
 			delete sessions.list[oname];
 		}
-		
+
 		// background.ga("send", "event", "Session", "Rename");
 	}],
-	
+
 	add: [function(name){
 		utils.confirm("Are you sure you want to add the current window's tabs to " + sessions.display(name) + "?");
 	}, function(name){
 		utils.tabs(function(tabs){
 			Array.prototype.push.apply(name === null ? sessions.temp : sessions.list[name], tabs);
 		});
-		
+
 		// background.ga("send", "event", name === null ? "Temp": "Session", "AddWin");
 	}],
-	
-	tab: [function(name){
-		utils.confirm("Are you sure you want to add the current tab to " + sessions.display(name) + "?");
-	}, function(name){
-		chrome.tabs.getSelected(null, function(tab){
-			(name === null ? sessions.temp : sessions.list[name]).push(tab.url);
+
+	tab: [
+		function(name){
+		  utils.confirm("Are you sure you want to add the current tab to " + sessions.display(name) + "?");
+		},
+		function(name){
+		  chrome.tabs.query({ active: true, currentWindow: true }, function(tabs){
+			(name === null ? sessions.temp : sessions.list[name]).push(tabs[0].url);
 			sessions.load();
-		});
-		
-		// background.ga("send", "event", name === null ? "Temp": "Session", "AddTab");
-	}],
-	
+		  });
+		}
+	  ],
+
 	replace: [function(name){
 		utils.confirm("Are you sure you want to replace " + sessions.display(name) + " with the current window's tabs?");
 	}, function(name){
 		// background.ga("send", "event", "Session", sessions.list[name] ? "Replace" : "Save");
-		
+
 		utils.tabs(function(tabs){
 			sessions.list[name] = tabs;
 		});
 	}, function(name){
 		utils.confirm("Are you sure you want to replace " + sessions.display(name) + " with the session being saved?");
 	}],
-	
+
 	remove: [function(name){
 		utils.confirm("Are you sure you want to remove " + sessions.display(name) + "?");
 	}, function(name){
@@ -236,18 +236,18 @@ var actions = {
 		} else {
 			delete sessions.list[name];
 		}
-		
+
 		// background.ga("send", "event", name === null ? "Temp" : "Session", "Remove");
 	}],
-	
+
 	savetemp: [function(){
 		utils.tabs(function(tabs){
 			sessions.temp = tabs;
 		});
-		
+
 		// background.ga("send", "event", "Temp", "Save");
 	}],
- 
+
 //     // save all windows and tabs
 //     saveall: [function(){
 // // 		utils.tabs(function(tabs){
@@ -255,10 +255,10 @@ var actions = {
 // // 		});
 //         chrome.windows.getAll(true);
 // 	}],
-  
+
     search: [function(){
         var $name = $("#main-search-name"), name = state.name = $name.val().trim();
-        
+
         if (name==" ") {
             exit;
         } else {
@@ -266,22 +266,22 @@ var actions = {
             var $list = $("#main-saved-list"), name = state.name = $name.val().trim();
             let alvo = document.getElementById("main-saved-list");
             alvo.innerText = "";
-            
+
             const div = document.getElementById("main-saved-list");
-        
+
             for (child of div.children){
                 child.remove();
             }
         }
         //document.write("popup.html");
-      
+
         /*$.each(sessions.list, function(name){
 			$("<div/>").html("<big>" + utils.escape(name) +' ' + "</big><a>&times;</a><br>" +
 				sessions.display(name, true) +
 				"<span><a>Open</a> - <a>Add</a> (<a>tab</a>) - <a>Replace</a></span>" +
 			"<br><hr>").attr("data-name", name).appendTo($list);
 		*/
-        
+
         //});
         //alert(name);
         //utils.view("main");
@@ -289,14 +289,14 @@ var actions = {
         //document.write(list);
         //sessions.sc(name);
         //sessions.load();
-        
+
         //sessions.display(name);
         //sessions.load;
         //document.write("");
     return name;
 	}],
-	
-    
+
+
 //     search: [function(){
 // 		utils.tabs(function(tabs){
 // 			sessions.temp = tabs;
@@ -305,41 +305,79 @@ var actions = {
 //                         sessions.list[name] = tabs;
 //                     });
 // :
-// 		
+//
 // 		// background.ga("send", "event", "Temp", "Save");
 // 	}],
     all: [function(){
 		var $name = $("#main-save-name"), name = state.name = $name.val().trim();
-		
+
 		if (name) {
 			$name.val("");
-			
+
 			utils.action("replace", sessions.list[name] ? 2 : 1);
 		}
 	}],
-// 	
+//
 	save: [function(){
 		var $name = $("#main-save-name"), name = state.name = $name.val().trim();
-		
+
 		if (name) {
 			$name.val("");
-			
+
 			utils.action("replace", sessions.list[name] ? 2 : 1);
 		}
 	}]
 };
 
+function openSession (cwinId, urls, e, isTemp) {
+	var open = JSON.parse(localStorage.open);
+	var action = e ? (((e.ctrlKey || e.metaKey) && "ctrl/cmd+click") || (e.shiftKey && "shift+click") || (e.altKey && "alt+click") || "click") : open.add;
+
+	for (var k in open) {
+		if (action === open[k]) {
+			action = k;
+			break;
+		}
+	}
+	// console.log(typeof urls);
+	// console.log("URLS:", urls);
+
+
+	if (action === "add") {
+		urls.forEach(function (v) {
+			chrome.tabs.create({ windowId: cwinId, url: v });
+		});
+	} else if (action === "replace") {
+		chrome.tabs.getAllInWindow(cwinId, function (tabs) {
+			openSession(cwinId, urls);
+
+			if (localStorage.noreplacingpinned) {
+				tabs = tabs.filter(function (t) { return !t.pinned; });
+			}
+
+			tabs.forEach(function (tab) {
+				chrome.tabs.remove(tab.id);
+			});
+		});
+	} else if (action === "new" || action === "incognito") {
+		chrome.windows.create({ url: urls.shift(), incognito: action === "incognito" }, function (win) {
+			openSession(win.id, urls);
+		});
+	} else {
+		return false;
+	}
+};
 
 /*** events ***/
 $("body").on("focus", "*", function(){
 	this.blur();
-	
+
 	$("body").off("focus", "*");
 }).on("click keypress", "[data-view], [data-action]", function(e){
 	if ((this.tagName === "BUTTON" && e.type === "keypress") || (this.tagName === "INPUT" && (e.type !== "keypress" || e.which !== 13))) {
 		return;
 	}
-	
+
 	"view" in this.dataset && utils.view(this.dataset.view);
 	"action" in this.dataset && utils.action(this.dataset.action, this.dataset.actionindex);
 });
@@ -348,15 +386,15 @@ $("body").on("focus", "*", function(){
 //---------------------
 $("#main-search-list").on("click", "big, div > a:not([title])", function(){
 	state.name = this.parentNode.dataset.name;
-	
+
 	utils.action(this.tagName === "BIG" ? "rename" : "remove");
 }).on("click", "span > a", function(e){
 	var action = this.textContent.toLowerCase(),
 		name = state.name = this.parentNode.parentNode.dataset.name;
-	
+
 	if (action === "open") {
 		chrome.windows.getCurrent(function(win){
-			background.openSession(win.id, sessions.list[name], e, false) !== false && window.close();
+			openSession(win.id, sessions.list[name], e, false) !== false && window.close();
 		});
 	} else {
 		utils.action(action);
@@ -367,15 +405,15 @@ $("#main-search-list").on("click", "big, div > a:not([title])", function(){
 
 $("#main-saved-list").on("click", "big, div > a:not([title])", function(){
 	state.name = this.parentNode.dataset.name;
-	
+
 	utils.action(this.tagName === "BIG" ? "rename" : "remove");
 }).on("click", "span > a", function(e){
 	var action = this.textContent.toLowerCase(),
 		name = state.name = this.parentNode.parentNode.dataset.name;
-	
+
 	if (action === "open") {
 		chrome.windows.getCurrent(function(win){
-			background.openSession(win.id, sessions.list[name], e, false) !== false && window.close();
+			openSession(win.id, sessions.list[name], e, false) !== false && window.close();
 		});
 	} else {
 		utils.action(action);
@@ -385,10 +423,10 @@ $("#main-saved-list").on("click", "big, div > a:not([title])", function(){
 $("#main-saved-temp").on("click", "a:not([title])", function(e){
 	var action = this.textContent.toLowerCase();
 	state.name = null;
-	
+
 	if (action === "open") {
 		chrome.windows.getCurrent(function(win){
-			background.openSession(win.id, sessions.temp, e, true) !== false && window.close();
+			openSession(win.id, sessions.temp, e, true) !== false && window.close();
 		});
 	} else if (action.length === 1) {
 		utils.action("remove");
@@ -407,19 +445,19 @@ sessions.load();
 
 if (localStorage.readchanges !== "true") {
 	$("#main-changelog").show();
-	
+
 	localStorage.readchanges = true;
 }
 
 if (location.search) {
 	$("#import [data-view]").click(function(){
 		window.close();
-		
+
 		return false;
 	});
-	
+
 	utils.view("import");
-	
+
 	// background.ga("send", "pageview", "/import");
 } else {
 	// background.ga("send", "pageview", "/popup");
