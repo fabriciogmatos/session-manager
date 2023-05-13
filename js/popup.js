@@ -155,8 +155,6 @@ var actions = {
 			message.hide();
 			next();
 		});
-
-		// background.ga("send", "event", "Action", "Import", state.entered);
 	}],
 
 	export: [function(){
@@ -165,8 +163,6 @@ var actions = {
 		$("#export-link").prop("href", (window.URL || window.webkitURL).createObjectURL(data));
 	}, function(){
 		$("#export-check").fadeIn().delay(2000).fadeOut();
-
-		// background.ga("send", "event", "Action", "Export");
 	}],
 
 	rename: [function(name){
@@ -190,8 +186,6 @@ var actions = {
 		if (state.entered !== oname) {
 			delete sessions.list[oname];
 		}
-
-		// background.ga("send", "event", "Session", "Rename");
 	}],
 
 	add: [function(name){
@@ -200,8 +194,6 @@ var actions = {
 		utils.tabs(function(tabs){
 			Array.prototype.push.apply(name === null ? sessions.temp : sessions.list[name], tabs);
 		});
-
-		// background.ga("send", "event", name === null ? "Temp": "Session", "AddWin");
 	}],
 
 	tab: [
@@ -219,8 +211,6 @@ var actions = {
 	replace: [function(name){
 		utils.confirm("Are you sure you want to replace " + sessions.display(name) + " with the current window's tabs?");
 	}, function(name){
-		// background.ga("send", "event", "Session", sessions.list[name] ? "Replace" : "Save");
-
 		utils.tabs(function(tabs){
 			sessions.list[name] = tabs;
 		});
@@ -236,25 +226,21 @@ var actions = {
 		} else {
 			delete sessions.list[name];
 		}
-
-		// background.ga("send", "event", name === null ? "Temp" : "Session", "Remove");
 	}],
 
 	savetemp: [function(){
 		utils.tabs(function(tabs){
 			sessions.temp = tabs;
 		});
-
-		// background.ga("send", "event", "Temp", "Save");
 	}],
 
-//     // save all windows and tabs
-//     saveall: [function(){
-// // 		utils.tabs(function(tabs){
-// // 			sessions.temp = tabs;
-// // 		});
-//         chrome.windows.getAll(true);
-// 	}],
+    // save all windows and tabs
+    // saveall: [function(){
+	// 	utils.tabs(function(tabs){
+	// 		sessions.temp = tabs;
+	// 	});
+    //     chrome.windows.getAll(true);
+	// }],
 
     search: [function(){
         var $name = $("#main-search-name"), name = state.name = $name.val().trim();
@@ -305,8 +291,6 @@ var actions = {
 //                         sessions.list[name] = tabs;
 //                     });
 // :
-//
-// 		// background.ga("send", "event", "Temp", "Save");
 // 	}],
     all: [function(){
 		var $name = $("#main-save-name"), name = state.name = $name.val().trim();
@@ -317,7 +301,7 @@ var actions = {
 			utils.action("replace", sessions.list[name] ? 2 : 1);
 		}
 	}],
-//
+
 	save: [function(){
 		var $name = $("#main-save-name"), name = state.name = $name.val().trim();
 
@@ -339,9 +323,6 @@ function openSession (cwinId, urls, e, isTemp) {
 			break;
 		}
 	}
-	// console.log(typeof urls);
-	// console.log("URLS:", urls);
-
 
 	if (action === "add") {
 		urls.forEach(function (v) {
@@ -455,12 +436,7 @@ if (location.search) {
 
 		return false;
 	});
-
 	utils.view("import");
-
-	// background.ga("send", "pageview", "/import");
-} else {
-	// background.ga("send", "pageview", "/popup");
 }
 
 })();

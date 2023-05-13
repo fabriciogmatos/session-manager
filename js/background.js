@@ -2,11 +2,6 @@
 // Analytics
 ////////////////////////////////////////////////////////////////////////////////
 
-// (function(i,s,o,g,r,a,m){i["GoogleAnalyticsObject"]=r;i[r]=i[r]||function(){
-// (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-// m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-// })(window,document,"script","https://www.google-analytics.com/analytics.js","ga");
-
 $(document).ready(function() {
 $("#reset-session").change(function() {
     if($(this).is(':checked')) {
@@ -22,12 +17,6 @@ $("#reset-session").change(function() {
 var version = chrome.runtime.getManifest().version;
 localStorage = chrome.storage.local.get('sessions');
 localStorage.version = function() { var version = chrome.runtime.getManifest().version};
-
-// ga("create", "##GAID##", "auto");
-// ga("set", "checkProtocolTask", null);
-// ga("set", "transport", "beacon");
-// ga("set", "dimension1", version);
-// ga("send", "pageview", "/");
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -45,14 +34,6 @@ localStorage = chrome.storage.local.get('sessions', function(data) {
 });
   chrome.storage.local.set({'sessions': JSON.stringify(sessions)});
 });
-// localStorage.sessions = localStorage.sessions || '{}';
-// localStorage.pinned = localStorage.pinned || "skip";
-// localStorage.open = localStorage.open || JSON.stringify({
-// 	add: "click",
-// 	replace: "shift+click",
-// 	new: "ctrl/cmd+click",
-// 	incognito: "alt+click",
-// });
 
 if (localStorage.version === version) {
 	if (localStorage.temp) {
@@ -62,7 +43,6 @@ if (localStorage.version === version) {
 
 		delete localStorage.temp;
 
-		// ga("send", "event", "Temp", "Restore");
 	}
 } else {
 	localStorage.readchanges = false;
@@ -117,8 +97,6 @@ chrome.omnibox.onInputEntered.addListener(function (name) {
 
 	if (sessions[name]) {
 		openSession(undefined, sessions[name]);
-
-		// ga("send", "event", "Session", "Omnibox");
 	}
 });
 
@@ -162,6 +140,4 @@ window.openSession = function (cwinId, urls, e, isTemp) {
 	} else {
 		return false;
 	}
-
-	// e && ga("send", "event", isTemp ? "Temp" : "Session", "Open", action);
 };
