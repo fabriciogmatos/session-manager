@@ -33,6 +33,7 @@ localStorage = chrome.storage.local.get('sessions', function(data) {
 	incognito: "alt+click",
 });
   chrome.storage.local.set({'sessions': JSON.stringify(sessions)});
+  chrome.storage.local.set({'open': JSON.stringify(open)});
 });
 
 if (localStorage.version === version) {

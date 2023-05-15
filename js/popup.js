@@ -314,7 +314,13 @@ var actions = {
 };
 
 function openSession (cwinId, urls, e, isTemp) {
-	var open = JSON.parse(localStorage.open);
+	var open = JSON.stringify({
+		add: "click",
+		replace: "shift+click",
+		new: "ctrl/cmd+click",
+		incognito: "alt+click",
+	});
+	var open = JSON.parse(open);
 	var action = e ? (((e.ctrlKey || e.metaKey) && "ctrl/cmd+click") || (e.shiftKey && "shift+click") || (e.altKey && "alt+click") || "click") : open.add;
 
 	for (var k in open) {
